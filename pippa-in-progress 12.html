@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>one day at a time</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --border:#30363d;--border2:#21262d;
+  --blue:#38bdf8;--blue-dim:#0c2233;--blue-light:#7dd3fc;
+  --green:#34d399;--green-dim:#063320;--green-light:#6ee7b7;
+  --red:#e05252;--red-dim:#2d1212;--red-light:#f08080;
+  --rose:#c9517a;--rose-dim:#2a1020;--rose-light:#f0a0be;
+  --lilac:#7c3aed;--lilac-light:#b794f4;--lilac-dim:#1e1035;
+  --teal:#0e9a8a;--teal-light:#4fd1c5;
+  --amber:#c07a15;--amber-light:#fbbf5a;
+  --radius:6px;--radius-lg:12px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;min-height:100vh}
+#app{padding:20px 16px 48px;max-width:430px;margin:0 auto}
+
+.header{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border2)}
+.title{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-.02em}
+.subtitle{font-size:12px;color:var(--lilac-light);margin-top:4px;font-family:'Space Mono',monospace;letter-spacing:.06em}
+.goal-badge{display:inline-block;background:var(--lilac-dim);color:var(--lilac-light);border:1px solid var(--lilac);font-size:11px;font-family:'Space Mono',monospace;padding:4px 10px;border-radius:20px;margin-top:10px}
+
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 10px}
+.stat-val{font-size:20px;font-weight:600;font-family:'Space Mono',monospace;color:var(--text)}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:4px;line-height:1.3;letter-spacing:.04em;text-transform:uppercase;font-family:'Space Mono',monospace}
+.stat-val.good{color:var(--teal-light)}
+.stat-val.warn{color:var(--amber-light)}
+
+.progress-section{margin-bottom:20px}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:'Space Mono',monospace}
+.progress-pct{font-family:'Space Mono',monospace;font-size:12px;color:var(--lilac-light)}
+.progress-bar-bg{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--lilac-light));border-radius:3px;transition:width .5s ease}
+.progress-markers{display:flex;justify-content:space-between;margin-top:5px}
+.progress-marker{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px}
+.section-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--lilac-light);margin-bottom:12px;font-family:'Space Mono',monospace}
+
+.log-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.log-row input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;transition:border-color .2s}
+.log-row input:focus{border-color:var(--lilac-light)}
+.log-row input::placeholder{color:var(--text3)}
+.btn{background:var(--lilac);color:#fff;border:none;border-radius:var(--radius);padding:6px 14px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:12px;cursor:pointer;white-space:nowrap}
+.btn:active{opacity:.8}
+#log-feedback{font-size:11px;font-family:'Space Mono',monospace;min-height:16px;color:var(--text3);margin-top:2px}
+
+/* trend canvas */
+#trendCanvas{display:block;width:100%;border-radius:4px}
+.zoom-btns{display:flex;gap:6px;margin-bottom:10px}
+.zoom-btn{flex:1;padding:5px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text3);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;text-align:center;transition:all .15s}
+.zoom-btn.active{background:var(--lilac-dim);border-color:var(--lilac);color:var(--lilac-light)}
+
+/* weekly averages */
+.week-avg-list{display:flex;flex-direction:column;gap:6px}
+.week-avg-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2)}
+.week-avg-row:last-child{border-bottom:none}
+.week-avg-lbl{font-size:11px;color:var(--text3);font-family:'Space Mono',monospace}
+.week-avg-val{font-size:13px;font-weight:600;font-family:'Space Mono',monospace;color:var(--text)}
+.week-avg-delta{font-size:10px;font-family:'Space Mono',monospace;margin-left:8px}
+.week-avg-delta.down{color:var(--teal-light)}
+.week-avg-delta.up{color:var(--amber-light)}
+.week-avg-n{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;margin-left:4px}
+
+/* calorie grid */
+#cal-grid-wrap{width:100%;position:relative}#cal-grid{display:grid;grid-template-columns:repeat(28,1fr);grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:2px;width:100%;aspect-ratio:4/1}
+.cal-cell{aspect-ratio:1;border-radius:2px;cursor:pointer;transition:opacity .12s,transform .1s;min-width:0;min-height:0}
+.cal-cell:active{opacity:.6;transform:scale(.85)}
+.cal-cell.empty{background:transparent;cursor:default;pointer-events:none}
+.cal-cell.future{background:var(--bg3)}
+.cal-cell.unset{background:var(--bg4)}
+.cal-cell.blue{background:var(--blue)}
+.cal-cell.green{background:var(--green)}
+.cal-cell.red{background:var(--red)}
+.cal-cell.today-ring{box-shadow:0 0 0 2px var(--rose-light)}
+
+.cal-legend{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'Space Mono',monospace}
+.cal-dot{width:11px;height:11px;border-radius:2px}
+.cal-dot.blue{background:var(--blue)}
+.cal-dot.green{background:var(--green)}
+.cal-dot.red{background:var(--red)}
+
+/* calorie logger */
+.cal-log-row{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.cal-log-row input[type=date]{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;-webkit-appearance:none;width:100%}
+.cal-log-row input[type=date]:focus{border-color:var(--lilac-light)}
+.colour-btns{display:flex;gap:6px}
+.colour-btn{width:26px;height:26px;border-radius:var(--radius);border:2px solid transparent;cursor:pointer;transition:border-color .15s,transform .1s;flex-shrink:0}
+.colour-btn:active{transform:scale(.88)}
+.colour-btn.sel{border-color:#fff}
+.colour-btn.c-blue{background:var(--blue)}
+.colour-btn.c-green{background:var(--green)}
+.colour-btn.c-red{background:var(--red)}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border);padding:9px 18px;border-radius:20px;font-size:12px;color:var(--lilac-light);opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;z-index:999;font-family:'Space Mono',monospace}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="app">
+
+  <div class="header" style="text-align:center">
+    <div class="title">one day at a time</div>
+    <div class="subtitle">june — december 2026</div>
+    <div class="goal-badge">goal: 68 kg</div>
+  </div>
+
+  <div style="margin-bottom:16px;text-align:center">
+    <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:6px">current weight</div>
+    <div style="font-size:32px;font-weight:600;font-family:'Space Mono',monospace;color:var(--text);letter-spacing:-.02em"><span id="stat-current">—</span> <span style="font-size:16px;color:var(--text3);font-weight:400">kg</span></div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-lbl">progress to goal</span>
+      <span class="progress-pct" id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-bar" style="width:0%"></div></div>
+    <div class="progress-markers">
+      <span class="progress-marker">76.35</span>
+      <span class="progress-marker">68.00</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">log weight</div>
+    <div class="log-row" style="margin-bottom:8px">
+      <input type="date" id="weight-date" min="2026-06-21" max="2027-01-01" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none">
+    </div>
+    <div class="log-row" style="margin-bottom:0">
+      <input type="number" id="weight-input" placeholder="00.00" step="0.01" min="40" max="200" style="font-size:12px;padding:6px 10px">
+      <button class="btn" onclick="logWeight()">log</button>
+    </div>
+    <div id="log-feedback" style="min-height:0"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">weight trend</div>
+    <div class="zoom-btns">
+      <div class="zoom-btn active" id="z7" onclick="setZoom(7)">7 days</div>
+      <div class="zoom-btn" id="z30" onclick="setZoom(30)">30 days</div>
+      <div class="zoom-btn" id="zAll" onclick="setZoom(0)">all time</div>
+    </div>
+    <canvas id="trendCanvas" height="160" role="img" aria-label="Weight trend chart"></canvas>
+    <div style="display:flex;gap:16px;margin-top:10px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">
+        <div style="width:18px;height:2px;background:#79b8ff;opacity:.8;border-radius:1px"></div>daily
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">
+        <div style="width:18px;height:0;border-top:2px dashed var(--rose-light)"></div>7-day avg
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">weekly averages</div>
+    <div class="week-avg-list" id="week-avg-list">
+      <div style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">no data yet</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">calorie balance — 2026</div>
+    <div id="cal-grid-wrap"><div id="cal-grid"></div></div>
+    <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-dot blue"></div>deficit</div>
+      <div class="cal-legend-item"><div class="cal-dot green"></div>balanced</div>
+      <div class="cal-legend-item"><div class="cal-dot red"></div>surplus</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">log calorie day</div>
+    <div class="cal-log-row">
+      <input type="date" id="cal-date" min="2026-06-21" max="2027-01-01" style="flex:1;min-width:0">
+      <div class="colour-btns">
+        <div class="colour-btn c-blue sel" id="cb-blue" onclick="selectColour('blue')"></div>
+        <div class="colour-btn c-green" id="cb-green" onclick="selectColour('green')"></div>
+        <div class="colour-btn c-red" id="cb-red" onclick="selectColour('red')"></div>
+      </div>
+      <button class="btn" onclick="logCalorie()">log</button>
+    </div>
+    <div id="cal-feedback" style="font-size:11px;font-family:'Space Mono',monospace;color:var(--text3);min-height:0"></div>
+  </div>
+
+</div>
+
+<script>
+const START_W = 76.35;
+let currentZoom = 7; // 7, 30, or 0 (all)
+
+function setZoom(z){
+  currentZoom=z;
+  ['z7','z30','zAll'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(z===7?'z7':z===30?'z30':'zAll').classList.add('active');
+  const entries=allWeights();
+  renderTrend(entries);
+}
+const GOAL_W  = 68.00;
+const GRID_COLS = 28; // 28 weeks
+const GRID_ROWS = 7;  // Mon–Sun
+
+// Grid runs from the Monday of week containing 20 Jun 2026
+// 20 Jun 2026 is a Saturday (day index 6 in Mon=0 system)
+// So grid starts: 20 - 5 = 15 Jun 2026
+const GRID_START = new Date(2026,5,21); // 21 Jun
+const GRID_END   = new Date(2027,0,2); // 02 Jan (last grid cell)
+
+// Today as entered by the weight logger — defaults to Jun 20
+// We store it per session so you can backdate weight logs
+let logDate = '2026-06-21';
+
+function dateKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function parseKey(k){ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtDDMM(d){ return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); }
+function fmtFull(k){ const d=parseKey(k); return fmtDDMM(d)+'/'+d.getFullYear(); }
+
+function loadData(){
+  try{ return JSON.parse(localStorage.getItem('wt26')||'{}'); } catch(e){ return {}; }
+}
+function saveData(d){ localStorage.setItem('wt26',JSON.stringify(d)); }
+
+let data = loadData();
+if(!data.weights)  data.weights  = {};
+if(!data.calories) data.calories = {};
+// No seed weight — starts blank
+
+// Set default date inputs to today
+const _td=new Date(); const _todayKey=dateKey(_td);
+document.getElementById('cal-date').value = _todayKey;
+document.getElementById('weight-date').value = _todayKey;
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// Weight logger — uses the date input, defaulting to 2026-06-20
+// We also add a date input for weight logging
+function logWeight(){
+  const inp=document.getElementById('weight-input');
+  const v=parseFloat(inp.value);
+  if(isNaN(v)||v<40||v>200){ showToast('enter a valid weight (40–200)'); return; }
+  // Use the calorie date as the current date for weight too (they share context)
+  const dateVal = document.getElementById('weight-date').value || '2026-06-21';
+  data.weights[dateVal]=Math.round(v*100)/100;
+  saveData(data);
+  inp.value='';
+  const fb=document.getElementById('log-feedback');
+  fb.textContent='logged '+v.toFixed(2)+' kg for '+fmtFull(dateVal);
+  fb.style.color='var(--teal-light)';
+  showToast('weight logged ✓');
+  render();
+}
+
+// Calorie colour picker
+let selectedColour='blue';
+function selectColour(c){
+  selectedColour=c;
+  ['blue','green','red'].forEach(x=>{
+    document.getElementById('cb-'+x).classList.toggle('sel',x===c);
+  });
+}
+
+function logCalorie(){
+  const dateVal=document.getElementById('cal-date').value;
+  if(!dateVal){ showToast('pick a date first'); return; }
+  const d=parseKey(dateVal);
+  if(d>GRID_END){ showToast('date out of range'); return; }
+  data.calories[dateVal]=selectedColour;
+  saveData(data);
+  const fb=document.getElementById('cal-feedback');
+  fb.textContent=fmtFull(dateVal)+' → '+selectedColour;
+  fb.style.color=selectedColour==='blue'?'var(--blue-light)':selectedColour==='green'?'var(--green-light)':'var(--red-light)';
+  showToast('saved ✓');
+  renderCalGrid();
+}
+
+function allWeights(){
+  return Object.keys(data.weights).sort().map(k=>({date:parseKey(k),key:k,val:data.weights[k]}));
+}
+
+function rollingAvg(arr,n){
+  return arr.map((_,i)=>{
+    const s=arr.slice(Math.max(0,i-n+1),i+1);
+    return s.reduce((a,x)=>a+x,0)/s.length;
+  });
+}
+
+function render(){
+  const entries=allWeights();
+  const latest=entries.length?entries[entries.length-1].val:START_W;
+  const lost=Math.round((START_W-latest)*100)/100;
+  const toGo=Math.max(0,Math.round((latest-GOAL_W)*100)/100);
+  const pct=Math.max(0,Math.min(100,Math.round((START_W-latest)/(START_W-GOAL_W)*100)));
+
+  document.getElementById('stat-current').textContent=entries.length?latest.toFixed(2):'—';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-bar').style.width=pct+'%';
+
+  renderTrend(entries);
+  renderWeeklyAverages(entries);
+  renderCalGrid();
+}
+
+function renderTrend(entries){
+  const canvas=document.getElementById('trendCanvas');
+  const W=canvas.offsetWidth||340;
+  canvas.width=W*2; canvas.height=320; // 2x for retina
+  const ctx=canvas.getContext('2d');
+  ctx.scale(2,2);
+  const cw=W, ch=160;
+
+  const PAD={top:12,right:24,bottom:36,left:42};
+  const plotW=cw-PAD.left-PAD.right;
+  const plotH=ch-PAD.top-PAD.bottom;
+
+  // Build day range based on zoom level
+  const allKeys=[];
+  const today=new Date(); today.setHours(0,0,0,0);
+  const lastEntry=entries.length?entries[entries.length-1].date:new Date(2026,5,21);
+  const endD=lastEntry>today?lastEntry:today;
+  let startD;
+  if(currentZoom===0){
+    startD=new Date(2026,5,21);
+  } else {
+    startD=new Date(endD);
+    startD.setDate(endD.getDate()-(currentZoom-1));
+    if(startD<new Date(2026,5,21)) startD=new Date(2026,5,21);
+  }
+  const cur=new Date(startD);
+  while(cur<=endD){ allKeys.push(dateKey(new Date(cur))); cur.setDate(cur.getDate()+1); }
+
+  const weightMap={};
+  entries.forEach(e=>{ weightMap[e.key]=e.val; });
+
+  const vals=allKeys.map(k=>weightMap[k]??null);
+  // forward-fill for rolling avg
+  let last=START_W;
+  const filled=vals.map(v=>{ if(v!==null) last=v; return last; });
+  const avg7=rollingAvg(filled,7);
+
+  const nonNull=vals.filter(v=>v!==null);
+  if(!nonNull.length){ 
+    // no data yet — show placeholder
+    ctx.fillStyle='#6e7681';
+    ctx.font='12px Space Mono, monospace';
+    ctx.fillText('log your first weight above',PAD.left,ch/2);
+    return;
+  }
+
+  const mn=Math.min(...nonNull);
+  const mx=Math.max(...nonNull);
+  // Nice round bounds
+  const yMin=Math.floor((mn-0.5)*2)/2; // round down to nearest 0.5
+  const yMax=Math.ceil((mx+0.5)*2)/2;
+  const yRange=yMax-yMin||1;
+  const n=allKeys.length;
+
+  function xPos(i){ return PAD.left+(i/(Math.max(n-1,1)))*plotW; }
+  function yPos(v){ return PAD.top+plotH-(((v-yMin)/yRange)*plotH); }
+
+  // Grid lines + y labels
+  ctx.strokeStyle='#21262d';
+  ctx.lineWidth=1;
+  ctx.fillStyle='#6e7681';
+  ctx.font='9px Space Mono, monospace';
+  ctx.textAlign='right';
+
+  // Pick ~5 nice y ticks
+  const step=yRange<=2?0.5:yRange<=4?1:2;
+  let tick=Math.ceil(yMin/step)*step;
+  while(tick<=yMax+0.001){
+    const y=yPos(tick);
+    ctx.beginPath(); ctx.moveTo(PAD.left,y); ctx.lineTo(cw-PAD.right,y); ctx.stroke();
+    ctx.fillText(tick.toFixed(1),PAD.left-4,y+3);
+    tick=Math.round((tick+step)*10)/10;
+  }
+
+  // X axis labels — show a few dates
+  ctx.textAlign='center';
+  ctx.fillStyle='#6e7681';
+  const xStep=Math.max(1,Math.floor(n/5));
+  for(let i=0;i<n;i+=xStep){
+    const x=xPos(i);
+    const lbl=fmtDDMM(parseKey(allKeys[i]));
+    ctx.fillText(lbl,x,ch-PAD.bottom+20);
+  }
+
+  // 7-day avg line
+  ctx.beginPath();
+  ctx.strokeStyle='#f0a0be';
+  ctx.lineWidth=2;
+  ctx.setLineDash([5,3]);
+  avg7.forEach((v,i)=>{
+    const x=xPos(i),y=yPos(v);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Daily dots + line
+  ctx.strokeStyle='rgba(121,184,255,0.5)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  let started=false;
+  vals.forEach((v,i)=>{
+    if(v===null) return;
+    const x=xPos(i),y=yPos(v);
+    if(!started){ ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  vals.forEach((v,i)=>{
+    if(v===null) return;
+    const x=xPos(i),y=yPos(v);
+    ctx.beginPath();
+    ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle='#79b8ff';
+    ctx.fill();
+    ctx.strokeStyle='#161b22';
+    ctx.lineWidth=1;
+    ctx.stroke();
+  });
+}
+
+function renderWeeklyAverages(entries){
+  const el=document.getElementById('week-avg-list');
+  if(!entries.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">no data yet</div>'; return; }
+
+  // Group by Sun-Sat week
+  const weeks={};
+  entries.forEach(e=>{
+    const d=e.date;
+    // Find the Sunday on or before this date
+    const sun=new Date(d);
+    sun.setDate(d.getDate()-((d.getDay()+7)%7)); // getDay(): 0=Sun
+    const wk=dateKey(sun);
+    if(!weeks[wk]) weeks[wk]={vals:[],sun:new Date(sun)};
+    weeks[wk].vals.push(e.val);
+  });
+
+  const sorted=Object.keys(weeks).sort().reverse(); // most recent first
+  if(!sorted.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace">no data yet</div>'; return; }
+
+  el.innerHTML=sorted.map((wk,i)=>{
+    const w=weeks[wk];
+    const avg=Math.round(w.vals.reduce((a,b)=>a+b,0)/w.vals.length*100)/100;
+    const sun=w.sun;
+    const sat=new Date(sun); sat.setDate(sun.getDate()+6);
+    const lbl=fmtDDMM(sun)+' – '+fmtDDMM(sat);
+    const n=w.vals.length;
+
+    // Delta vs previous week
+    let delta='';let dc='';
+    const prevWk=sorted[i+1];
+    if(prevWk){
+      const prevAvg=Math.round(weeks[prevWk].vals.reduce((a,b)=>a+b,0)/weeks[prevWk].vals.length*100)/100;
+      const diff=Math.round((avg-prevAvg)*100)/100;
+      if(diff<0){delta='↓ '+Math.abs(diff).toFixed(2);dc='down';}
+      else if(diff>0){delta='↑ '+diff.toFixed(2);dc='up';}
+    }
+
+    return '<div class="week-avg-row">'+
+      '<div>'+
+        '<div class="week-avg-lbl">'+lbl+'</div>'+
+        '<div style="font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:2px">'+n+' entr'+(n===1?'y':'ies')+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center">'+
+        (delta?'<span class="week-avg-delta '+dc+'">'+delta+'</span>':'')+
+        '<span class="week-avg-val" style="margin-left:8px">'+avg.toFixed(2)+'</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderCalGrid(){
+  const grid=document.getElementById('cal-grid');
+
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const TOTAL=28*7; // 196
+
+  let html='';
+  for(let i=0;i<TOTAL;i++){
+    const d=new Date(2026,5,21);
+    d.setDate(d.getDate()+i);
+    const k=dateKey(d);
+    const isValid=d<=GRID_END;
+    if(!isValid){ html+='<div class="cal-cell empty"></div>'; continue; }
+    const isFuture=d>today;
+    const st=data.calories[k]||'none';
+    let cls='cal-cell';
+    if(isFuture) cls+=' future';
+    else if(st==='blue') cls+=' blue';
+    else if(st==='green') cls+=' green';
+    else if(st==='red') cls+=' red';
+    else cls+=' unset';
+    if(k===dateKey(today)) cls+=' today-ring';
+    html+=`<div class="${cls}" title="${fmtDDMM(d)}"></div>`;
+  }
+  grid.innerHTML=html;
+}
+
+render();
+window.logWeight=logWeight;
+window.logCalorie=logCalorie;
+window.selectColour=selectColour;
+window.setZoom=setZoom;
+</script>
+</body>
+</html>
